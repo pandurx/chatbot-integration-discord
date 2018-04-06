@@ -20,9 +20,9 @@
 // -----------------------------Configurable section-----------------------------
 const DEBUG = true;
 
-const DISCORD_TOKEN         = 'process.env.discord_token';
+const DISCORD_TOKEN         = process.env.discord_token;
 const DISCORD_CHANNELID     = '431845180920954880';
-const SLACK_TOKEN           = 'process.env.slack_token';
+const SLACK_TOKEN           = process.env.slack_token;
 const SLACK_CHANNEL         = 'general';
 const SLACK_CHANNEL_PRIVATE = false;
 // ------------------------------------------------------------------------------
