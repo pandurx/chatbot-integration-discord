@@ -1,51 +1,102 @@
-var Discord = require('discord.io');
-var logger = require('winston');
+// ---------------------- How to configure a Discord bot: ----------------------
+// 1: Create an app : https://discordapp.com/developers/applications/me
+// 2: When app is created, click on "Create a Bot User"
+// 3: Name bot, copy the Token + Client ID, paste them in the conf. section below and save changes.
+// 4: Go to this URL (replace the Client ID)
+//    https://discordapp.com/oauth2/authorize?client_id=YOUR_CLIENT_ID_HERE&scope=bot&permissions=3072
+// 5: Choose the server you want to give your bot access to and click OK (or wtv the button is named)
+// 6: Go on Discord and give permission to your bot to read and write msgs
+// 7: Copy Channel ID and paste it in the conf. section below.
+
+// ----------------------- How to configure a Slack bot: ------------------------
+// 1: Go to https://YOUR_SERVER.slack.com/apps/manage/custom-integrations
+// 2: Click on Bots
+// 3: Click on Add Integration
+// 4: Name your bot, copy the Token and paste it in the conf. section below.
+// 5: Invite the bot to the wanted channel (/invite @my-l33t-bot)
+// 6: Copy the channel name in the conf. section below.
 
 
-// Configure logger settings
-logger.remove(logger.transports.Console);
-logger.add(logger.transports.Console, {
-    colorize: true
+// -----------------------------Configurable section-----------------------------
+const DEBUG = true;
+
+const DISCORD_TOKEN         = 'NDMxNDY0MTUzNDI1NjQxNTA0.DafIWw.YcBBDH7QEVKhVhBy7UL5yzPqR5s';
+const DISCORD_CHANNELID     = '431845180920954880';
+const SLACK_TOKEN           = 'xoxb-342475297075-P4tXws93kuslm76ubITHkmmf';
+const SLACK_CHANNEL         = 'general';
+const SLACK_CHANNEL_PRIVATE = false;
+// ------------------------------------------------------------------------------
+
+if (DISCORD_TOKEN     === '' ||
+    DISCORD_CHANNELID === '' ||
+    SLACK_TOKEN       === '' ||
+    SLACK_CHANNEL     === '') {
+	console.log("You need to configure your Discord and Slack tokens and channels" +
+	            "in the file discord2slack.js. It's right in the header.");
+	process.exit(1);
+}
+
+const Discord = require('discord.js');
+const discord_client = new Discord.Client();
+const SlackBot = require('slackbots');
+const slack_client = new SlackBot({token: SLACK_TOKEN, name: 'discord-connector'});
+
+var discord_channel;
+
+function debug(msg) {
+	if (DEBUG) { console.log(msg); }
+}
+
+//Let's configure events:
+
+discord_client.on('ready', function(){
+	//Finding the right channel where to send the messages
+	discord_channel = discord_client.channels.findAll("id", DISCORD_CHANNELID)[0];
+	console.log("Discord connected");
 });
 
-logger.level = 'debug';
-
-// Initialize Discord Bot
-var bot = new Discord.Client({
-   token: "NDMxNDY0MTUzNDI1NjQxNTA0.DafIWw.YcBBDH7QEVKhVhBy7UL5yzPqR5s",
-   autorun: true
+slack_client.on('start', function() {
+	console.log("Slack connected");
 });
 
-
-
-bot.on('ready', function (evt) {
-	console.log("I am ready!");
+//Redirect Discord messages to Slack
+discord_client.on('message', function(message) {
+	//Avoiding re-sending a message we just received from Slack
+	//(event gets triggered even if it's a msg *we* sent to the chat)
+	if (message.author.username != discord_client.user.username)
+	{
+		//Check for atachements (files/images/etc.)
+		var content = message.content;
+		if (message.attachments != null) {
+			var attachments = message.attachments.array();
+			attachments.forEach(a => { content += "\n" + a.url; });	
+		}
+		debug("Discord --> " + message.author.username + ": " + content);
+		if (SLACK_CHANNEL_PRIVATE) {
+			slack_client.postMessageToGroup(SLACK_CHANNEL, message.author.username + ": " + content);
+		} else {
+			slack_client.postMessageToChannel(SLACK_CHANNEL, message.author.username + ": " + content);
+		}
+	}
 });
 
+//Redirect Slack client to Discord
+slack_client.on('message', function(message) {
+	if (message.type == "message")
+	{
+		//Unlike Discord, event doesn't get triggered if it is a msg we sent
 
-
-
-bot.on('message', function (user, userID, channelID, message, evt) {
-
-    // Our bot needs to know if it will execute a command
-    // It will listen for messages that will start with `!`
-    if (message.substring(0, 1) == '!') {
-        var args = message.substring(1).split(' ');
-        var cmd = args[0];
-       
-        args = args.splice(1);
-        switch(cmd) {
-            // !ping
-            case 'ping':
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'Pong!'
-                });
-                
-                console.log("pong!");
-            break;
-
-            // Just add any case commands if you want to..
-         }
-     }
+		//We have to find the user name/nickname by ourselves though
+		slack_client.getUsers()._value.members.forEach(function(elem){
+			if (elem.id == message.user)
+			{
+				username = elem.name;
+				realname = elem.real_name;
+				debug("Slack  --> " + realname + " (" + username + ") : " + message.text);
+				discord_channel.send(realname + " (" + username + ") : " + message.text);
+			}
+		});
+	}
 });
+
+discord_client.login(DISCORD_TOKEN);
