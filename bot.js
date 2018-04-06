@@ -29,8 +29,6 @@ bot.on('ready', function (evt) {
     });
     
     
-    const { Client } = require('pg');
-    
 });
 
 
