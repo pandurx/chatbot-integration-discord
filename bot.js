@@ -26,7 +26,7 @@ const SLACK_TOKEN           = 'process.env.slack_token';
 const SLACK_CHANNEL         = 'general';
 const SLACK_CHANNEL_PRIVATE = false;
 // ------------------------------------------------------------------------------
-
+console.log("Discord connected ... " + DISCORD_TOKEN + " ... " + SLACK_TOKEN);
 if (DISCORD_TOKEN     === '' ||
     DISCORD_CHANNELID === '' ||
     SLACK_TOKEN       === '' ||
