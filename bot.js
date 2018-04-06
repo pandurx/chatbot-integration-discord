@@ -9,6 +9,7 @@ logger.add(logger.transports.Console, {
 });
 
 logger.level = 'debug';
+
 // Initialize Discord Bot
 var bot = new Discord.Client({
    token: "NDMxNDY0MTUzNDI1NjQxNTA0.DafIWw.YcBBDH7QEVKhVhBy7UL5yzPqR5s",
@@ -18,17 +19,7 @@ var bot = new Discord.Client({
 
 
 bot.on('ready', function (evt) {
-    logger.info('Connected');
-    logger.info('Logged in as: ');
-    logger.info(bot.username + ' - (' + bot.id + ')');
-    
-    console.log('i have been reborn again!');
-    bot.setPresence( { 
-        game: 
-            { name: 'you play', type: 3 }
-    });
-    
-    
+	console.log("I am ready!");
 });
 
 
