@@ -20,9 +20,9 @@
 // -----------------------------Configurable section-----------------------------
 const DEBUG = true;
 
-const DISCORD_TOKEN         = 'NDMxNDY0MTUzNDI1NjQxNTA0.DafIWw.YcBBDH7QEVKhVhBy7UL5yzPqR5s';
+const DISCORD_TOKEN         = 'process.env.discord_token';
 const DISCORD_CHANNELID     = '431845180920954880';
-const SLACK_TOKEN           = 'xoxb-342475297075-P4tXws93kuslm76ubITHkmmf';
+const SLACK_TOKEN           = 'process.env.slack_token';
 const SLACK_CHANNEL         = 'general';
 const SLACK_CHANNEL_PRIVATE = false;
 // ------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ function debug(msg) {
 discord_client.on('ready', function(){
 	//Finding the right channel where to send the messages
 	discord_channel = discord_client.channels.findAll("id", DISCORD_CHANNELID)[0];
-	console.log("Discord connected");
+	console.log("Discord connected ... " + DISCORD_TOKEN + " ... " + SLACK_TOKEN);
 });
 
 slack_client.on('start', function() {
